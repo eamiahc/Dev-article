@@ -1,10 +1,3 @@
-from src.utils.data_preprocessing import preprocess_data
-from src.models.bilstm import build_bilstm_model
-from src.models.text_cnn import build_text_cnn_model
-from src.models.bigru import build_bigru_model
-from src.models.dn_bilstm import build_dn_bilstm_model
-import tensorflow as tf
-
 if __name__ == "__main__":
     # Prétraiter les données
     preprocess_data("data/raw/tripadvisor_hotel_reviews.csv", "data/processed/cleaned_reviews_with_sentiment.csv")
@@ -39,6 +32,15 @@ if __name__ == "__main__":
     print("Training BiLSTM model...")
     bilstm_model = build_bilstm_model(len(embedding_matrix), 100, max_len, embedding_matrix)
     bilstm_model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=10, batch_size=32, verbose=1)
+
+    print("Training SC-BiLSTM model (Two-Phase)...")
+    sc_bilstm_model = build_sc_bilstm_model(len(embedding_matrix), 100, max_len, embedding_matrix)
+    # Phase 1: Weakly supervised training
+    sc_bilstm_model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=5, batch_size=32, verbose=1)
+
+    # Phase 2: Fine-tuning
+    fine_tune_data, _, fine_tune_labels, _ = train_test_split(X_val, y_val, test_size=0.8, random_state=42)
+    sc_bilstm_model.fit(fine_tune_data, fine_tune_labels, validation_split=0.2, epochs=5, batch_size=16, verbose=1)
 
     print("Training Text-CNN model...")
     text_cnn_model = build_text_cnn_model(len(embedding_matrix), 100, max_len, embedding_matrix)
