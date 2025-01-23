@@ -1,3 +1,10 @@
+from src.utils.data_preprocessing import preprocess_data
+from src.models.bilstm import build_bilstm_model, build_sc_bilstm_model
+from src.models.text_cnn import build_text_cnn_model
+from src.models.bigru import build_bigru_model
+from src.models.dn_bilstm import build_dn_bilstm_model
+import tensorflow as tf
+
 if __name__ == "__main__":
     # Prétraiter les données
     preprocess_data("data/raw/tripadvisor_hotel_reviews.csv", "data/processed/cleaned_reviews_with_sentiment.csv")
